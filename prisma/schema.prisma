@@ -7,3 +7,72 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+/*
+Relationships:
+
+User <-> Tweet
+1 User can post N Tweets (1:N)
+1 Tweet belongs to 1 User (1:1)
+
+User <-> Like
+1 User can like N Tweets (1:N)
+1 Like belongs to 1 User (1:1)
+
+Tweet <-> Like
+1 Tweet can have N Likes (1:N)
+1 Like belongs to 1 Tweet (1:1)
+*/
+
+model User {
+  id String @id @default(uuid())
+  name String
+  username String @unique
+  email String @unique
+  password String
+  
+  tweets Tweet[]
+  likes Like[]
+  followers Follow[] @relation("Follower")
+  following Follow[] @relation("Following")
+
+  @@map("users")
+}
+
+model Tweet {
+  id String   @id @default(uuid())
+  content String
+  createdAt DateTime @default(now())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+
+  likes Like[]
+  replies Tweet[] @relation("Replies")
+  parentId String? // Father tweet ID for replies
+  parent    Tweet?   @relation("Replies", fields: [parentId], references: [id])
+
+  @@map("tweets")
+}
+
+model Like {
+  id String @id @default(uuid())
+  userId String
+  tweetId String
+  user User @relation(fields: [userId], references: [id])
+  tweet Tweet @relation(fields: [tweetId], references: [id])
+
+  @@unique([userId, tweetId]) // Ensure a user can like a tweet only once
+  @@map("likes")
+}
+
+model Follow {
+  id String @id @default(uuid())
+  followerId String
+  followingId String
+
+  follower User @relation("Follower", fields: [followerId], references: [id])
+  following User @relation("Following", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId]) // Ensure a user can follow another user only once
+  @@map("follows")
+}
