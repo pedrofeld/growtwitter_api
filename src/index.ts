@@ -35,6 +35,12 @@ async function main() {
         });
         console.log("Updated User:", updatedUser);
     */
+
+    /*
+        // 5 - Delete a user
+        const deletedUser = await userRepository.delete("daec2955-097f-4c58-be92-3986611eb84a");
+        console.log("Deleted User:", deletedUser);
+    */
 }
 
 main();
