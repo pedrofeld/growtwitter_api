@@ -3,12 +3,11 @@ import { UserRepository } from "./database/user.repository";
 const userRepository = new UserRepository();
 
 async function main() {
-    /*
-        1 - Get all users
-        const users = await userRepository.findAll();
-        console.log("All users:", users);
-    */
-
+    
+    // 1 - Get all users
+    const users = await userRepository.findAll();
+    console.log("All users:", users);
+    
     /*
         2 - Get user by ID
         const user = await userRepository.findById("74195d6f-32be-4428-b255-d385ff73b6dc");
