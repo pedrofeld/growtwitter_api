@@ -26,13 +26,18 @@ Tweet <-> Like
 
 model User {
   id String @id @default(uuid())
-  name String
-  username String @unique
-  email String @unique
+  name String @db.VarChar(120)
+  username String @unique @db.VarChar(60)
+  email String @unique @db.VarChar(60)
   password String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   
   tweets Tweet[]
+  
   likes Like[]
+  
   followers Follow[] @relation("Follower")
   following Follow[] @relation("Following")
 
@@ -40,16 +45,20 @@ model User {
 }
 
 model Tweet {
-  id String   @id @default(uuid())
-  content String
+  id String @id @default(uuid())
+  content String @db.VarChar(300)
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   userId String
   user User @relation(fields: [userId], references: [id])
 
   likes Like[]
   replies Tweet[] @relation("Replies")
+
   parentId String? // Father tweet ID for replies
-  parent    Tweet?   @relation("Replies", fields: [parentId], references: [id])
+  parent Tweet? @relation("Replies", fields: [parentId], references: [id])
 
   @@map("tweets")
 }
@@ -58,6 +67,7 @@ model Like {
   id String @id @default(uuid())
   userId String
   tweetId String
+  
   user User @relation(fields: [userId], references: [id])
   tweet Tweet @relation(fields: [tweetId], references: [id])
 
