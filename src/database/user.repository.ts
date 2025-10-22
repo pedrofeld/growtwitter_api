@@ -1,6 +1,7 @@
 import { handleError } from "../config/error.handler";
 import { prisma } from "../config/prisma.config";
 import { CreateUserDto } from "../dtos/create-user.dto";
+import { UpdateUserDto } from "../dtos/update-user.dto";
 
 export class UserRepository {
     // SELECT * FROM users
@@ -38,7 +39,7 @@ export class UserRepository {
     }
 
     // UPDATE users SET ... WHERE id = ?
-    public async update(id: string, data: any) {
+    public async update(id: string, data: UpdateUserDto) {
         try {
             const updatedUser = await prisma.user.update({
                 where: { id },
