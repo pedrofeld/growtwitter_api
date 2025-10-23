@@ -1,6 +1,24 @@
 import { UserRepository } from "./database/user.repository";
+import express = require('express');
+import cors = require('cors');
+
+// VIA EXPRESS SERVER
+
+const app = express();
+app.use(cors());
+
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
 
 const userRepository = new UserRepository();
+
+// VIA BACK-END CODE (TESTING PURPOSES)
 
 async function main() {
     
