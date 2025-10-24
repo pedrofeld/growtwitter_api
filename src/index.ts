@@ -34,7 +34,7 @@ app.get('/users', async (req, res) => {
 });
 
 // 2 - Get user by ID
-app.get('/users/:id', async (req, res) => {
+app.get('/user/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const user = await userRepository.findById(id);
@@ -105,6 +105,32 @@ app.put('/user/:id', async (req, res) => {
     }
 });
 
+// 5 - Delete a user
+app.delete('/user/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const deletedUser = await userRepository.delete(id);
+        if (deletedUser) {
+            res.status(200).send({
+                ok: true,
+                message: "User deleted successfully:",
+                data: deletedUser
+            });
+        } else {
+            res.status(404).send({
+                ok: false,
+                message: "User not found"
+            });
+        }
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error deleting user",
+            error: error.message
+        });
+    }
+});
+
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
@@ -127,8 +153,8 @@ app.listen(PORT, () => {
 //     // 3 - Create a new user
 //     const newUser = await userRepository.create({
 //         name: "Thor",
-//         username: "playboyzinho",
-//         email: "deus.do.trovao@gmail.com",
+//         username: "thor.odinson",
+//         email: "god.of.thunder@gmail.com",
 //         password: "12345",
 //     });
 //     console.log("Created User:", newUser);
@@ -136,7 +162,7 @@ app.listen(PORT, () => {
 //     // 4 - Update an existing user
 //     const updatedUser = await userRepository.update("daec2955-097f-4c58-be92-3986611eb84a", {
 //         name: "Thor Odinson",
-//         username: "deus.trovao",
+//         username: "gof.of.thunder",
 //     });
 //     console.log("Updated User:", updatedUser);
 
