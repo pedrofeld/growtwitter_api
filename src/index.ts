@@ -8,20 +8,64 @@ dotenv.config();
 // VIA EXPRESS SERVER
 
 const app = express();
+app.use(express.json());
 app.use(cors());
+
+const userRepository = new UserRepository();
+
+// 1 - Get all users
+app.get('/users', async (req, res) => {
+    try {
+        const users = await userRepository.findAll();
+        res.status(200).send({
+            ok: true,
+            message: "All users:",
+            data: users
+        });
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error fetching users",
+            error: error.message
+        })
+    }
+});
+
+// 2 - Get user by ID
+app.get('/users/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const user = await userRepository.findById(id);
+        if (user) {
+            res.status(200).send({
+                ok: true,
+                message: "User found:",
+                data: user
+            });
+        } else {
+            res.status(404).send({
+                ok: false,
+                message: "User not found"
+            });
+        }
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error fetching user",
+            error: error.message
+        });
+    }
+});
 
 const PORT = process.env.PORT;
-
-app.use(cors());
-app.use(express.json());
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
-const userRepository = new UserRepository();
-
 // VIA BACK-END CODE (TESTING PURPOSES)
+
+// const userRepository = new UserRepository();
 
 // async function main() {
 //     // 1 - Get all users
