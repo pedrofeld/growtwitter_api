@@ -11,6 +11,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// USERS
+
 const userRepository = new UserRepository();
 
 // 1 - Get all users
@@ -52,6 +54,52 @@ app.get('/users/:id', async (req, res) => {
         res.status(500).send({
             ok: false,
             message: "Error fetching user",
+            error: error.message
+        });
+    }
+});
+
+// 3 - Create a new user
+app.post('/user', async (req, res) => {
+    const userData = req.body;
+    try {
+        const newUser = await userRepository.create(userData);
+        res.status(201).send({
+            ok: true,
+            message: "User created successfully:",
+            data: newUser
+        });
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error creating user",
+            error: error.message
+        });
+    }
+});
+
+// 4 - Update an existing user
+app.put('/user/:id', async (req, res) => {
+    const { id } = req.params;
+    const userData = req.body;
+    try {
+        const updatedUser = await userRepository.update(id, userData);
+        if (updatedUser) {
+            res.status(200).send({
+                ok: true,
+                message: "User updated successfully:",
+                data: updatedUser
+            });
+        } else {
+            res.status(404).send({
+                ok: false,
+                message: "User not found"
+            });
+        }
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error updating user",
             error: error.message
         });
     }
