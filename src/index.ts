@@ -3,6 +3,7 @@ import express = require('express');
 import cors = require('cors');
 import * as dotenv from 'dotenv';
 import { prisma } from "./config/prisma.config";
+import * as bcrypt from 'bcrypt';
 
 dotenv.config();
 
@@ -116,11 +117,35 @@ app.get('/user/:id', async (req, res) => {
 app.post('/user', async (req, res) => {
     const userData = req.body;
     try {
-        const newUser = await userRepository.create(userData);
+        if (!req.body.name || !req.body.username || !req.body.email || !req.body.password) {
+            return res.status(400).json({
+                ok: false,
+                message: "Name, username, email and password are required fields"
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+        const newUser = await userRepository.create({ ...userData, password: hashedPassword });
+
+        if (!newUser) {
+            throw new Error("Failed to create user");
+        }
+
+        const userWithoutPassword = {
+            id: newUser.id,
+            name: newUser.name,
+            username: newUser.username,
+            email: newUser.email,
+            profileImage: newUser.profileImage,
+            createdAt: newUser.createdAt,
+            updatedAt: newUser.updatedAt
+        };
+
         res.status(201).send({
             ok: true,
             message: "User created successfully:",
-            data: newUser
+            data: userWithoutPassword
         });
     } catch (error: any) {
         res.status(500).send({
@@ -180,6 +205,64 @@ app.delete('/user/:id', async (req, res) => {
             ok: false,
             message: "Error deleting user",
             error: error.message
+        });
+    }
+});
+
+// 6 - User login
+
+app.post('/login', async (req, res) => {
+    const { login, password } = req.body;
+
+    try {
+        if (!login || !password) {
+            return res.status(400).send({
+                ok: false,
+                message: "Login and password are required"
+            });
+        }
+
+        let user = await userRepository.findByEmail(login);
+
+        if (!user) {
+            user = await userRepository.findByUsername(login);
+        }
+
+        if (!user) {
+            return res.status(404).send({
+                ok: false,
+                message: "Invalid login credentials"
+            });
+        }
+
+        const validPassword = await bcrypt.compare(password, user.password);
+
+        if (!validPassword) {
+            return res.status(401).send({
+                ok: false,
+                message: "Invalid password"
+            });
+        }
+
+        const token = `token-${user.id}-${Date.now()}`;
+
+        res.status(200).send({
+            ok: true,
+            message: "Login successful",
+            data: {
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    username: user.username,
+                    email: user.email
+                },
+                token
+            }
+        });
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error logging in: " + error.message
         });
     }
 });

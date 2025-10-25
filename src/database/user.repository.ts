@@ -62,4 +62,28 @@ export class UserRepository {
             return handleError(error);
         }
     }
+
+    // SELECT * FROM users WHERE email = ?
+    public async findByEmail(email: string) {
+        try {
+            const user = await prisma.user.findUnique({
+                where: { email },
+            });
+            return user;
+        } catch (error: any) {
+            return handleError(error);
+        }
+    }
+
+    // SELECT * FROM users WHERE username = ?
+    public async findByUsername(username: string) {
+        try {
+            const user = await prisma.user.findUnique({
+                where: { username },
+            });
+            return user;
+        } catch (error: any) {
+            return handleError(error);
+        }
+    }
 }
