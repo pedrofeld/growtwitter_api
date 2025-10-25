@@ -2,6 +2,7 @@ import { UserRepository } from "./database/user.repository";
 import express = require('express');
 import cors = require('cors');
 import * as dotenv from 'dotenv';
+import { prisma } from "./config/prisma.config";
 
 dotenv.config();
 
@@ -34,24 +35,76 @@ app.get('/users', async (req, res) => {
 });
 
 // 2 - Get user by ID
+
 app.get('/user/:id', async (req, res) => {
     const { id } = req.params;
+    
     try {
-        const user = await userRepository.findById(id);
-        if (user) {
-            res.status(200).send({
-                ok: true,
-                message: "User found:",
-                data: user
-            });
-        } else {
-            res.status(404).send({
-                ok: false,
-                message: "User not found"
+        const user = await prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                name: true, 
+                username: true,
+                tweets: {
+                    orderBy: { createdAt: 'desc' }
+                }
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ 
+                ok: false, 
+                message: "User not found" 
             });
         }
+
+        const followers = await prisma.follow.findMany({
+            where: { 
+                followingId: id
+            },
+            include: {
+                follower: {
+                    select: { 
+                        id: true, 
+                        name: true, 
+                        username: true, 
+                        profileImage: true 
+                    }
+                }
+            }
+        });
+
+        const following = await prisma.follow.findMany({
+            where: { 
+                followerId: id  
+            },
+            include: {
+                following: {
+                    select: { 
+                        id: true, 
+                        name: true, 
+                        username: true, 
+                        profileImage: true 
+                    }
+                }
+            }
+        });
+
+        const response = {
+            ok: true,
+            message: "User found:",
+            data: {
+                ...user,
+                followers: followers,
+                following: following
+            }
+        };
+
+        res.status(200).json(response);
+
     } catch (error: any) {
-        res.status(500).send({
+        res.status(500).json({
             ok: false,
             message: "Error fetching user",
             error: error.message
