@@ -144,6 +144,14 @@ export class TweetRepository {
     // Unlike a tweet
     public async unlikeTweet(data: LikeDto) {
         try {
+            if (!data.tweetId) {
+                throw new Error("Tweet not found");
+            }
+
+            if (!data.userId) {
+                throw new Error("User not found");
+            }
+
             const like = await prisma.like.delete({
                 where: {
                     userId_tweetId: {
