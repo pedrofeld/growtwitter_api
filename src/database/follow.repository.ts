@@ -44,7 +44,7 @@ export class FollowRepository {
 
             return follow;
         } catch (error: any) {
-            throw new Error(`Error following user: ${error.message}`);
+            return handleError(error);
         }
     }
 
@@ -62,7 +62,7 @@ export class FollowRepository {
 
             return follow;
         } catch (error: any) {
-            throw new Error(`Error unfollowing user: ${error.message}`);
+            return handleError(error);
         }
     }
 }
