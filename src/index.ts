@@ -4,6 +4,7 @@ import cors = require('cors');
 import * as dotenv from 'dotenv';
 import { prisma } from "./config/prisma.config";
 import * as bcrypt from 'bcrypt';
+import { TweetRepository } from "./database/tweet.repository";
 
 dotenv.config();
 
@@ -276,6 +277,7 @@ app.listen(PORT, () => {
 // VIA BACK-END CODE (TESTING PURPOSES)
 
 // const userRepository = new UserRepository();
+// const tweetRepository = new TweetRepository();
 
 // async function main() {
 //     // 1 - Get all users
@@ -305,6 +307,49 @@ app.listen(PORT, () => {
 //     // 5 - Delete a user
 //     const deletedUser = await userRepository.delete("daec2955-097f-4c58-be92-3986611eb84a");
 //     console.log("Deleted User:", deletedUser);
+
+//     // 6 - Get all tweets
+//     const tweets = await tweetRepository.findAll();
+//     console.log("All tweets:", tweets);
+
+//     // 7 - Create a new tweet
+//     const newTweet = await tweetRepository.createTweet({
+//         content: "Thorweet! I am the God of Thunder!",
+//         userId: "4011ccff-fb66-43c4-b563-d3eca46d7edb"
+//     });
+//     console.log("Created Tweet:", newTweet);
+
+//     // 8 - Reply to a tweet
+//     const replyTweet = await tweetRepository.createTweet({
+//         content: "Where are Mjolnir and Stormbreaker?",
+//         userId: "c1a19af2-8954-42a1-8a20-46a8c3662669",
+//         parentId: "9e0ef305-4b39-4585-b1c7-3e34e8c48de5" // ID of the original tweet
+//     });
+//     console.log("Reply Tweet:", replyTweet);
+
+//     // 9 - Update a tweet
+//     const updatedTweet = await tweetRepository.update("03adae10-def7-4f8e-9e5c-55f5e6f6c1ca", {
+//         content: "Where are Mjolnir and Stormbreaker, Thor?"
+//     });
+//     console.log("Updated Tweet:", updatedTweet);
+
+//     // 10 - Delete a tweet
+//     const deletedTweet = await tweetRepository.delete("03adae10-def7-4f8e-9e5c-55f5e6f6c1ca");
+//     console.log("Deleted Tweet:", deletedTweet);
+
+//     // 11 - Like a tweet
+//     const like = await tweetRepository.likeTweet({
+//         tweetId: "9e0ef305-4b39-4585-b1c7-3e34e8c48de5",
+//         userId: "c1a19af2-8954-42a1-8a20-46a8c3662669"
+//     });
+//     console.log("Liked Tweet:", like);
+
+//     // 12 - Unlike a tweet
+//     const unlike = await tweetRepository.unlikeTweet({
+//         tweetId: "9e0ef305-4b39-4585-b1c7-3e34e8c48de5",
+//         userId: "c1a19af2-8954-42a1-8a20-46a8c3662669"
+//     });
+//     console.log("Unliked Tweet:", unlike);
 // }
 
 // main();
