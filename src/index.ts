@@ -17,6 +17,7 @@ app.use(cors());
 // USERS
 
 const userRepository = new UserRepository();
+const tweetRepository = new TweetRepository();
 
 // 1 - Get all users
 app.get('/users', async (req, res) => {
@@ -268,6 +269,24 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// 7 - Get all tweets
+app.get('/tweets', async (req, res) => {
+    try {
+        const tweets = await tweetRepository.findAll()
+        res.status(200).send({
+            ok: true,
+            message: "All tweets:",
+            data: tweets
+        });
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error fetching tweets",
+            error: error.message
+        })
+    }
+})
+
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
@@ -308,9 +327,9 @@ app.listen(PORT, () => {
 //     const deletedUser = await userRepository.delete("daec2955-097f-4c58-be92-3986611eb84a");
 //     console.log("Deleted User:", deletedUser);
 
-//     // 6 - Get all tweets
-//     const tweets = await tweetRepository.findAll();
-//     console.log("All tweets:", tweets);
+//    // 6 - Get all tweets
+//    const tweets = await tweetRepository.findAll();
+//    console.log("All tweets:", tweets);
 
 //     // 7 - Create a new tweet
 //     const newTweet = await tweetRepository.createTweet({
@@ -350,6 +369,6 @@ app.listen(PORT, () => {
 //         userId: "c1a19af2-8954-42a1-8a20-46a8c3662669"
 //     });
 //     console.log("Unliked Tweet:", unlike);
-// }
+//}
 
 // main();
