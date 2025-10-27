@@ -8,15 +8,59 @@ export class TweetRepository {
     public async findAll() {
         try {
             const tweets = await prisma.tweet.findMany({
+                where: {
+                    parentId: null // Just original tweets
+                },
                 include: {
                     user: {
                         select: {
+                            id: true,
                             name: true,
-                            username: true
+                            username: true,
+                            profileImage: true
                         }
                     },
-                    likes: true,
-                    replies: true
+                    likes: {
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true
+                                }
+                            }
+                        }
+                    },
+                    replies: { // Replies come within each original tweet
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    username: true,
+                                    profileImage: true
+                                }
+                            },
+                            likes: {
+                                include: {
+                                    user: {
+                                        select: {
+                                            id: true,
+                                            name: true
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        orderBy: {
+                            createdAt: 'asc'
+                        }
+                    },
+                    _count: {
+                        select: {
+                            likes: true,
+                            replies: true
+                        }
+                    }
                 },
                 orderBy: {
                     createdAt: 'desc'
