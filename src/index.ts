@@ -5,6 +5,7 @@ import * as dotenv from 'dotenv';
 import { prisma } from "./config/prisma.config";
 import * as bcrypt from 'bcrypt';
 import { TweetRepository } from "./database/tweet.repository";
+import { handleError } from "./config/error.handler";
 
 dotenv.config();
 
@@ -38,7 +39,6 @@ app.get('/users', async (req, res) => {
 });
 
 // 2 - Get user by ID
-
 app.get('/user/:id', async (req, res) => {
     const { id } = req.params;
     
@@ -212,7 +212,6 @@ app.delete('/user/:id', async (req, res) => {
 });
 
 // 6 - User login
-
 app.post('/login', async (req, res) => {
     const { login, password } = req.body;
 
@@ -282,6 +281,45 @@ app.get('/tweets', async (req, res) => {
         res.status(500).send({
             ok: false,
             message: "Error fetching tweets",
+            error: error.message
+        })
+    }
+})
+
+// 8 - Create a tweet
+app.post('/tweet', async (req, res) => {
+    try {
+        const tweetData = req.body;
+
+        if (!tweetData.content || !tweetData.userId){
+            return res.status(400).json({
+                ok: false,
+                message: "Content and userId are required fields"
+            });
+        }
+
+        if (tweetData.userId){
+            const validUserId = await userRepository.findById(tweetData.userId)
+
+            if (!validUserId){
+                return res.status(400).json({
+                    ok: false,
+                    message: "User not found"
+                });
+            }
+        }
+
+        const newTweet = await tweetRepository.createTweet(tweetData);
+
+        res.status(201).send({
+            ok: true,
+            message: "Tweet created successfully:",
+            data: newTweet
+        });
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error creating tweet",
             error: error.message
         })
     }
