@@ -66,6 +66,17 @@ export class TweetRepository {
         }
     }
 
+    public async findById(id: string) {
+        try {
+            const tweet = await prisma.tweet.findUnique({
+                where: { id },
+            });
+            return tweet;
+        } catch (error: any) {
+            return handleError(error);
+        }
+    }
+
     public async createTweet(data: CreateTweetDto) {
         try {
             // Check it it is a reply
