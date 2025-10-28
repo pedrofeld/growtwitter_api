@@ -25,7 +25,7 @@ export class LikeRepository{
             });
 
             if (existingLike) {
-                throw new Error("Você já curtiu este tweet");
+                throw new Error("You already liked this tweet");
             }
 
             // Create the like
