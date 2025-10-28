@@ -6,6 +6,7 @@ import { prisma } from "./config/prisma.config";
 import * as bcrypt from 'bcrypt';
 import { TweetRepository } from "./database/tweet.repository";
 import { handleError } from "./config/error.handler";
+import { LikeRepository } from "./database/like.repository";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(cors());
 
 const userRepository = new UserRepository();
 const tweetRepository = new TweetRepository();
+const likeRepository = new LikeRepository();
 
 // 1 - Get all users
 app.get('/users', async (req, res) => {
@@ -445,7 +447,14 @@ app.post('/like/:userId/:tweetId', async (req, res) => {
             }
         }
 
-        const newLike = await tweetRepository.likeTweet(tweetData);
+        const newLike = await likeRepository.likeTweet(tweetData);
+
+        if (!newLike){
+            return res.status(400).json({
+                ok: false,
+                message: "You already liked this tweet"
+            });
+        }
 
         res.status(200).send({
             ok: true,
@@ -465,14 +474,15 @@ app.post('/like/:userId/:tweetId', async (req, res) => {
 /*
     TO DO:
 
-    1) Create a repository just for Likes.
-    2) Create a separate folder in Postman just for Likes.
-    3) Validate exintingLike so the same user can't like the same tweet twice within the method to show a response in Postman.
+    1) Create a repository just for Likes. OK
+    2) Create a separate folder in Postman just for Likes. OK
+    3) Validate exintingLike so the same user can't like the same tweet twice within the method to show a response in Postman. OK
     4) Create a method for Unlike.
     5) Create methods for Follow.
     6) Create authentication for routes (users must be logged in).
     7) Standardize checks between functions in repositories and between methods in the index.
     8) Translate current data in Prisma into English.
+    9) Encrypt user passwords retroactive to encryption.
 */
 
 const PORT = process.env.PORT;
@@ -482,9 +492,6 @@ app.listen(PORT, () => {
 });
 
 // VIA BACK-END CODE (TESTING PURPOSES)
-
-// const userRepository = new UserRepository();
-// const tweetRepository = new TweetRepository();
 
 // async function main() {
 //     // 1 - Get all users
