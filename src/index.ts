@@ -407,6 +407,74 @@ app.delete('/tweet/:id', async (req, res) => {
     }
 })
 
+// 11 - Like a tweet
+app.post('/like/:userId/:tweetId', async (req, res) => {
+    try {
+        const { userId, tweetId } = req.params;
+        const tweetData = { userId, tweetId};
+
+        if (!userId){
+            return res.status(400).json({
+                ok: false,
+                message: "No user ID added"
+            })
+        } else{
+            const validUserId = await userRepository.findById(userId)
+
+            if (!validUserId){
+                return res.status(400).json({
+                    ok: false,
+                    message: "User not found"
+                });
+            }
+        }
+
+        if (!tweetId){
+            return res.status(400).json({
+                ok: false,
+                message: "No tweet ID added"
+            })
+        } else{
+            const validTweetId = await tweetRepository.findById(tweetId)
+
+            if (!validTweetId){
+                return res.status(400).json({
+                    ok: false,
+                    message: "Tweet not found"
+                });
+            }
+        }
+
+        const newLike = await tweetRepository.likeTweet(tweetData);
+
+        res.status(200).send({
+            ok: true,
+            message: "Tweet liked successfully:",
+            data: newLike
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error liking tweet",
+            error: error.message
+        });
+    }
+})
+
+/*
+    TO DO:
+
+    1) Create a repository just for Likes.
+    2) Create a separate folder in Postman just for Likes.
+    3) Validate exintingLike so the same user can't like the same tweet twice within the method to show a response in Postman.
+    4) Create a method for Unlike.
+    5) Create methods for Follow.
+    6) Create authentication for routes (users must be logged in).
+    7) Standardize checks between functions in repositories and between methods in the index.
+    8) Translate current data in Prisma into English.
+*/
+
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
