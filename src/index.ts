@@ -370,6 +370,43 @@ app.put('/tweet/:id', async (req, res) => {
     }
 })
 
+// 10 - Delete a tweet
+app.delete('/tweet/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id){
+            return res.status(400).json({
+                ok: false,
+                message: "No ID added"
+            })
+        } else{
+            const validTweetId = await tweetRepository.findById(id)
+
+            if (!validTweetId){
+                return res.status(400).json({
+                    ok: false,
+                    message: "Tweet not found"
+                });
+            }
+        }
+
+        const deletedTweet = await tweetRepository.delete(id);
+
+        res.status(200).send({
+            ok: true,
+            message: "Tweet deleted successfully:",
+            data: deletedTweet
+        });
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error deleting tweet",
+            error: error.message
+        });
+    }
+})
+
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
