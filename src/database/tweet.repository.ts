@@ -5,19 +5,21 @@ import { UpdateTweetDto } from "../dtos/update-tweet.dto";
 import { LikeDto } from "../dtos/create-like.dto";
 
 export class TweetRepository {
-    public async findAll() {
+    public async findAll(maxDepth: number = 50) {
         try {
-            const tweets = await prisma.tweet.findMany({
-                where: {
-                    parentId: null // Just original tweets
-                },
-                include: {
+            const includeRepliesRecursive = (currentDepth: number): any => {
+                const baseInclude = {
                     user: {
                         select: {
                             id: true,
                             name: true,
-                            username: true,
-                            profileImage: true
+                            username: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            likes: true,
+                            replies: true
                         }
                     },
                     likes: {
@@ -29,43 +31,35 @@ export class TweetRepository {
                                 }
                             }
                         }
-                    },
-                    replies: { // Replies come within each original tweet
-                        include: {
-                            user: {
-                                select: {
-                                    id: true,
-                                    name: true,
-                                    username: true,
-                                    profileImage: true
-                                }
-                            },
-                            likes: {
-                                include: {
-                                    user: {
-                                        select: {
-                                            id: true,
-                                            name: true
-                                        }
-                                    }
-                                }
-                            }
-                        },
+                    }
+                };
+
+                // Limit response levels so as not to overload the prism
+                if (currentDepth >= maxDepth) {
+                    return baseInclude;
+                }
+
+                return {
+                    ...baseInclude,
+                    replies: {
+                        include: includeRepliesRecursive(currentDepth + 1), // Recursion
                         orderBy: {
                             createdAt: 'asc'
                         }
-                    },
-                    _count: {
-                        select: {
-                            likes: true,
-                            replies: true
-                        }
                     }
+                };
+            };
+
+            const tweets = await prisma.tweet.findMany({
+                where: {
+                    parentId: null // Just original tweets
                 },
+                include: includeRepliesRecursive(0),
                 orderBy: {
                     createdAt: 'desc'
                 }
             });
+
             return tweets;
         } catch (error: any) {
             return handleError(error);
