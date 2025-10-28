@@ -325,6 +325,51 @@ app.post('/tweet', async (req, res) => {
     }
 })
 
+// 9 - Update a tweet
+app.put('/tweet/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const tweetData = req.body;
+
+        if (!id){
+            return res.status(400).json({
+                ok: false,
+                message: "No ID added"
+            })
+        } else {
+            const validTweetId = await tweetRepository.findById(id)
+
+            if (!validTweetId){
+                return res.status(400).json({
+                    ok: false,
+                    message: "Tweet not found"
+                });
+            }
+        }
+
+        if (!tweetData.content){
+            return res.status(400).json({
+                ok: false,
+                message: "No content added"
+            });
+        }
+
+        const updatedTweet = await tweetRepository.update(id, tweetData);
+
+        res.status(200).send({
+            ok: true,
+            message: "Tweet updated successfully:",
+            data: updatedTweet
+        });
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error updating user",
+            error: error.message
+        });
+    }
+})
+
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
