@@ -42,22 +42,15 @@ export class LikeRepository{
         }
     }
 
-    public async unlikeTweet(data: LikeDto) {
+    public async unlikeTweet(id: string) {
         try {
-            if (!data.tweetId) {
-                throw new Error("Tweet not found");
-            }
-
-            if (!data.userId) {
-                throw new Error("User not found");
+            if (!id) {
+                throw new Error("Like not found");
             }
 
             const like = await prisma.like.delete({
                 where: {
-                    userId_tweetId: {
-                        userId: data.userId,
-                        tweetId: data.tweetId
-                    }
+                    id
                 }
             });
 
