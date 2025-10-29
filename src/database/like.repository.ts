@@ -3,6 +3,26 @@ import { prisma } from "../config/prisma.config";
 import { LikeDto } from "../dtos/create-like.dto";
 
 export class LikeRepository{
+    public async findById(id: string){
+        try {
+            if (!id) {
+                throw new Error("No ID added");
+            }
+
+            const like = await prisma.like.findUnique({
+                where: { id },
+            });
+
+            if (!like){
+                throw new Error("Like not found")
+            }
+
+            return like;
+        } catch (error: any) {
+            return handleError(error);
+        }
+    }
+
     public async likeTweet(data: LikeDto) {
         try {
             // Check if tweet exists
