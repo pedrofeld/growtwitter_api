@@ -471,6 +471,43 @@ app.post('/like/:userId/:tweetId', async (req, res) => {
     }
 })
 
+// 12 - Unlike a tweet
+app.delete('/like/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id){
+            return res.status(400).json({
+                ok: false,
+                message: "No ID added"
+            })
+        } else{
+            const validLikeId = await likeRepository.findById(id)
+
+            if (!validLikeId){
+                return res.status(400).json({
+                    ok: false,
+                    message: "Like not found"
+                });
+            }
+        }
+
+        const deletedLike = await likeRepository.unlikeTweet(id);
+
+        res.status(200).send({
+            ok: true,
+            message: "Tweet deleted successfully:",
+            data: deletedLike
+        });
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error deleting tweet",
+            error: error.message
+        });
+    }
+})
+
 /*
     TO DO:
 
