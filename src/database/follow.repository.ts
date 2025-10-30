@@ -3,6 +3,30 @@ import { prisma } from "../config/prisma.config";
 import { FollowUserDto } from "../dtos/create-follow.dto";
 
 export class FollowRepository {
+    public async findAll(){
+        try {
+            const follows = await prisma.follow.findMany({
+                include: {
+                    following: {
+                        select: {
+                            name: true,
+                            username: true
+                        }
+                    },
+                    follower: {
+                        select: {
+                            name: true,
+                            username: true
+                        }
+                    }
+                }
+            });
+            return follows;
+        } catch (error: any) {
+            return handleError(error);
+        }
+    }
+    
     // Follow a user
     public async followUser(data: FollowUserDto) {
         try {
