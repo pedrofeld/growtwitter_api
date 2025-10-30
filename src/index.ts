@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { TweetRepository } from "./database/tweet.repository";
 import { handleError } from "./config/error.handler";
 import { LikeRepository } from "./database/like.repository";
+import { FollowRepository } from "./database/follow.repository";
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use(cors());
 const userRepository = new UserRepository();
 const tweetRepository = new TweetRepository();
 const likeRepository = new LikeRepository();
+const followRepository = new FollowRepository();
 
 // 1 - Get all users
 app.get('/users', async (req, res) => {
@@ -508,13 +510,100 @@ app.delete('/like/:id', async (req, res) => {
     }
 })
 
+// 13 - Get all follows
+app.get('/follows', async (req, res) => {
+    try {
+        const follows = await followRepository.findAll()
+        res.status(200).send({
+            ok: true,
+            message: "All follows:",
+            data: follows
+        });
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error fetching follows",
+            error: error.message
+        })
+    }
+})
+
+// 14 - Follow a user
+app.post('/follow', async (req, res) => {
+    try {
+        const { followerId, followingId } = req.body;
+        const followData = { followerId, followingId }
+
+        if (!followerId){
+            return res.status(400).json({
+                ok: false,
+                message: "No follower ID added"
+            })
+        } else{
+            const validUserId = await userRepository.findById(followerId)
+
+            if (!validUserId){
+                return res.status(400).json({
+                    ok: false,
+                    message: "User not found"
+                });
+            }
+        }
+
+        if (!followingId){
+            return res.status(400).json({
+                ok: false,
+                message: "No following ID added"
+            })
+        } else{
+            const validUserId = await userRepository.findById(followingId)
+
+            if (!validUserId){
+                return res.status(400).json({
+                    ok: false,
+                    message: "User not found"
+                });
+            }
+        }
+
+        if (followerId === followingId){
+            return res.status(400).json({
+                ok: false,
+                message: "User cannot follow themselves"
+            })
+        }
+
+        const newFollow = await followRepository.followUser(followData)
+
+        if (!newFollow){
+            return res.status(400).json({
+                ok: false,
+                message: "You already follow this user"
+            });
+        }
+
+        res.status(200).send({
+            ok: true,
+            message: "User followed successfully:",
+            data: newFollow
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error following",
+            error: error.message
+        });
+    }
+})
+
 /*
     TO DO:
 
     1) Create a repository just for Likes. OK
     2) Create a separate folder in Postman just for Likes. OK
     3) Validate exintingLike so the same user can't like the same tweet twice within the method to show a response in Postman. OK
-    4) Create a method for Unlike.
+    4) Create a method for Unlike. OK
     5) Create methods for Follow.
     6) Create authentication for routes (users must be logged in).
     7) Standardize checks between functions in repositories and between methods in the index.
