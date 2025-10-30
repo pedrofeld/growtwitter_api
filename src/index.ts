@@ -591,7 +591,76 @@ app.post('/follow', async (req, res) => {
     } catch (error: any) {
         res.status(500).send({
             ok: false,
-            message: "Error following",
+            message: "Error following user",
+            error: error.message
+        });
+    }
+})
+
+// 15 - Unfollow a user
+app.delete('/unfollow', async (req, res) => {
+    try {
+        const { followerId, followingId } = req.body;
+        const followData = { followerId, followingId }
+
+        if (!followerId){
+            return res.status(400).json({
+                ok: false,
+                message: "No follower ID added"
+            })
+        } else{
+            const validUserId = await userRepository.findById(followerId)
+
+            if (!validUserId){
+                return res.status(400).json({
+                    ok: false,
+                    message: "User not found"
+                });
+            }
+        }
+
+        if (!followingId){
+            return res.status(400).json({
+                ok: false,
+                message: "No following ID added"
+            })
+        } else{
+            const validUserId = await userRepository.findById(followingId)
+
+            if (!validUserId){
+                return res.status(400).json({
+                    ok: false,
+                    message: "User not found"
+                });
+            }
+        }
+
+        if (followerId === followingId){
+            return res.status(400).json({
+                ok: false,
+                message: "User cannot unfollow themselves"
+            })
+        }
+
+        const deletedFollow = await followRepository.unfollowUser(followData)
+
+        if (!deletedFollow){
+            return res.status(400).json({
+                ok: false,
+                message: "You already unfollow this user"
+            });
+        }
+
+        res.status(200).send({
+            ok: true,
+            message: "User unfollowed successfully:",
+            data: deletedFollow
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error unfollowing user",
             error: error.message
         });
     }
