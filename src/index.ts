@@ -8,24 +8,32 @@ import { TweetRepository } from "./database/tweet.repository";
 import { handleError } from "./config/error.handler";
 import { LikeRepository } from "./database/like.repository";
 import { FollowRepository } from "./database/follow.repository";
+import { 
+  authMiddleware, 
+  validateUserCreation, 
+  validateTweetCreation, 
+  validateIdParam,
+  validateUserLogin,
+  validateLike,
+  validateFollow
+} from "./config/middlewares";
 
 dotenv.config();
-
-// VIA EXPRESS SERVER
-
 const app = express();
 app.use(express.json());
 app.use(cors());
-
-// USERS
 
 const userRepository = new UserRepository();
 const tweetRepository = new TweetRepository();
 const likeRepository = new LikeRepository();
 const followRepository = new FollowRepository();
 
+// VIA EXPRESS SERVER
+
+// USERS
+
 // 1 - Get all users
-app.get('/users', async (req, res) => {
+app.get('/users', authMiddleware, async (req, res) => {
     try {
         const users = await userRepository.findAll();
         res.status(200).send({
@@ -43,12 +51,13 @@ app.get('/users', async (req, res) => {
 });
 
 // 2 - Get user by ID
-app.get('/user/:id', async (req, res) => {
-    const { id } = req.params;
-    
+app.get('/user/:id', authMiddleware, validateIdParam, async (req, res) => {
     try {
+        const { id } = req.params;
+        const userId = id as string;
+
         const user = await prisma.user.findUnique({
-            where: { id },
+            where: { id: userId },
             select: {
                 id: true,
                 name: true, 
@@ -68,7 +77,7 @@ app.get('/user/:id', async (req, res) => {
 
         const followers = await prisma.follow.findMany({
             where: { 
-                followingId: id
+                followingId: userId
             },
             include: {
                 follower: {
@@ -84,7 +93,7 @@ app.get('/user/:id', async (req, res) => {
 
         const following = await prisma.follow.findMany({
             where: { 
-                followerId: id  
+                followerId: userId
             },
             include: {
                 following: {
@@ -120,18 +129,10 @@ app.get('/user/:id', async (req, res) => {
 });
 
 // 3 - Create a new user
-app.post('/user', async (req, res) => {
-    const userData = req.body;
+app.post('/user', validateUserCreation, async (req, res) => {
     try {
-        if (!req.body.name || !req.body.username || !req.body.email || !req.body.password) {
-            return res.status(400).json({
-                ok: false,
-                message: "Name, username, email and password are required fields"
-            });
-        }
-
+        const userData = req.body;
         const hashedPassword = await bcrypt.hash(userData.password, 10);
-
         const newUser = await userRepository.create({ ...userData, password: hashedPassword });
 
         if (!newUser) {
@@ -163,11 +164,13 @@ app.post('/user', async (req, res) => {
 });
 
 // 4 - Update an existing user
-app.put('/user/:id', async (req, res) => {
-    const { id } = req.params;
-    const userData = req.body;
+app.put('/user/:id', authMiddleware, validateIdParam, async (req, res) => {
     try {
-        const updatedUser = await userRepository.update(id, userData);
+        const { id } = req.params;
+        const userId = id as string;
+        const userData = req.body;
+        const updatedUser = await userRepository.update(userId, userData);
+
         if (updatedUser) {
             res.status(200).send({
                 ok: true,
@@ -190,10 +193,12 @@ app.put('/user/:id', async (req, res) => {
 });
 
 // 5 - Delete a user
-app.delete('/user/:id', async (req, res) => {
-    const { id } = req.params;
+app.delete('/user/:id', authMiddleware, validateIdParam, async (req, res) => {
     try {
-        const deletedUser = await userRepository.delete(id);
+        const { id } = req.params;
+        const userId = id as string;
+        const deletedUser = await userRepository.delete(userId);
+
         if (deletedUser) {
             res.status(200).send({
                 ok: true,
@@ -216,17 +221,9 @@ app.delete('/user/:id', async (req, res) => {
 });
 
 // 6 - User login
-app.post('/login', async (req, res) => {
-    const { login, password } = req.body;
-
+app.post('/login', validateUserLogin, async (req, res) => {
     try {
-        if (!login || !password) {
-            return res.status(400).send({
-                ok: false,
-                message: "Login and password are required"
-            });
-        }
-
+        const { login, password } = req.body;
         let user = await userRepository.findByEmail(login);
 
         if (!user) {
@@ -272,8 +269,10 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// TWEETS
+
 // 7 - Get all tweets
-app.get('/tweets', async (req, res) => {
+app.get('/tweets', authMiddleware, async (req, res) => {
     try {
         const tweets = await tweetRepository.findAll()
         res.status(200).send({
@@ -291,16 +290,9 @@ app.get('/tweets', async (req, res) => {
 })
 
 // 8 - Create a tweet
-app.post('/tweet', async (req, res) => {
+app.post('/tweet', authMiddleware, validateTweetCreation, async (req, res) => {
     try {
         const tweetData = req.body;
-
-        if (!tweetData.content || !tweetData.userId){
-            return res.status(400).json({
-                ok: false,
-                message: "Content and userId are required fields"
-            });
-        }
 
         if (tweetData.userId){
             const validUserId = await userRepository.findById(tweetData.userId)
@@ -330,27 +322,20 @@ app.post('/tweet', async (req, res) => {
 })
 
 // 9 - Update a tweet
-app.put('/tweet/:id', async (req, res) => {
+app.put('/tweet/:id', authMiddleware, validateIdParam, async (req, res) => {
     try {
         const { id } = req.params;
+        const tweetId = id as string;
         const tweetData = req.body;
+        const validTweetId = await tweetRepository.findById(tweetId)
 
-        if (!id){
+        if (!validTweetId){
             return res.status(400).json({
                 ok: false,
-                message: "No ID added"
-            })
-        } else {
-            const validTweetId = await tweetRepository.findById(id)
-
-            if (!validTweetId){
-                return res.status(400).json({
-                    ok: false,
-                    message: "Tweet not found"
-                });
-            }
+                message: "Tweet not found"
+            });
         }
-
+        
         if (!tweetData.content){
             return res.status(400).json({
                 ok: false,
@@ -358,7 +343,7 @@ app.put('/tweet/:id', async (req, res) => {
             });
         }
 
-        const updatedTweet = await tweetRepository.update(id, tweetData);
+        const updatedTweet = await tweetRepository.update(tweetId, tweetData);
 
         res.status(200).send({
             ok: true,
@@ -375,27 +360,20 @@ app.put('/tweet/:id', async (req, res) => {
 })
 
 // 10 - Delete a tweet
-app.delete('/tweet/:id', async (req, res) => {
+app.delete('/tweet/:id', authMiddleware, validateIdParam,async (req, res) => {
     try {
         const { id } = req.params;
+        const tweetId = id as string;
+        const validTweetId = await tweetRepository.findById(tweetId)
 
-        if (!id){
+        if (!validTweetId){
             return res.status(400).json({
                 ok: false,
-                message: "No ID added"
-            })
-        } else{
-            const validTweetId = await tweetRepository.findById(id)
-
-            if (!validTweetId){
-                return res.status(400).json({
-                    ok: false,
-                    message: "Tweet not found"
-                });
-            }
+                message: "Tweet not found"
+            });
         }
-
-        const deletedTweet = await tweetRepository.delete(id);
+        
+        const deletedTweet = await tweetRepository.delete(tweetId);
 
         res.status(200).send({
             ok: true,
@@ -412,43 +390,33 @@ app.delete('/tweet/:id', async (req, res) => {
 })
 
 // 11 - Like a tweet
-app.post('/like/:userId/:tweetId', async (req, res) => {
+app.post('/like/:userId/:tweetId', authMiddleware, validateLike, async (req, res) => {
     try {
         const { userId, tweetId } = req.params;
-        const tweetData = { userId, tweetId};
+        const user = userId as string;
+        const tweet = tweetId as string;
+        const tweetData = { 
+            userId: user, 
+            tweetId: tweet 
+        };
+        const validUserId = await userRepository.findById(user)
 
-        if (!userId){
+        if (!validUserId){
             return res.status(400).json({
                 ok: false,
-                message: "No user ID added"
-            })
-        } else{
-            const validUserId = await userRepository.findById(userId)
-
-            if (!validUserId){
-                return res.status(400).json({
-                    ok: false,
-                    message: "User not found"
-                });
-            }
+                message: "User not found"
+            });
         }
+        
+        const validTweetId = await tweetRepository.findById(tweet)
 
-        if (!tweetId){
+        if (!validTweetId){
             return res.status(400).json({
                 ok: false,
-                message: "No tweet ID added"
-            })
-        } else{
-            const validTweetId = await tweetRepository.findById(tweetId)
-
-            if (!validTweetId){
-                return res.status(400).json({
-                    ok: false,
-                    message: "Tweet not found"
-                });
-            }
+                message: "Tweet not found"
+            });
         }
-
+        
         const newLike = await likeRepository.likeTweet(tweetData);
 
         if (!newLike){
@@ -463,7 +431,6 @@ app.post('/like/:userId/:tweetId', async (req, res) => {
             message: "Tweet liked successfully:",
             data: newLike
         });
-
     } catch (error: any) {
         res.status(500).send({
             ok: false,
@@ -474,27 +441,21 @@ app.post('/like/:userId/:tweetId', async (req, res) => {
 })
 
 // 12 - Unlike a tweet
-app.delete('/like/:id', async (req, res) => {
+app.delete('/like/:id', authMiddleware, validateIdParam, async (req, res) => {
     try {
         const { id } = req.params;
+        const likeId = id as string;
 
-        if (!id){
+        const validLikeId = await likeRepository.findById(likeId)
+
+        if (!validLikeId){
             return res.status(400).json({
                 ok: false,
-                message: "No ID added"
-            })
-        } else{
-            const validLikeId = await likeRepository.findById(id)
-
-            if (!validLikeId){
-                return res.status(400).json({
-                    ok: false,
-                    message: "Like not found"
-                });
-            }
+                message: "Like not found"
+            });
         }
 
-        const deletedLike = await likeRepository.unlikeTweet(id);
+        const deletedLike = await likeRepository.unlikeTweet(likeId);
 
         res.status(200).send({
             ok: true,
@@ -511,7 +472,7 @@ app.delete('/like/:id', async (req, res) => {
 })
 
 // 13 - Get all follows
-app.get('/follows', async (req, res) => {
+app.get('/follows', authMiddleware, async (req, res) => {
     try {
         const follows = await followRepository.findAll()
         res.status(200).send({
@@ -529,43 +490,28 @@ app.get('/follows', async (req, res) => {
 })
 
 // 14 - Follow a user
-app.post('/follow', async (req, res) => {
+app.post('/follow', authMiddleware, validateFollow, async (req, res) => {
     try {
         const { followerId, followingId } = req.body;
         const followData = { followerId, followingId }
+        const validFollowerId = await userRepository.findById(followerId)
 
-        if (!followerId){
+        if (!validFollowerId){
             return res.status(400).json({
                 ok: false,
-                message: "No follower ID added"
-            })
-        } else{
-            const validUserId = await userRepository.findById(followerId)
-
-            if (!validUserId){
-                return res.status(400).json({
-                    ok: false,
-                    message: "User not found"
-                });
-            }
+                message: "User not found"
+            });
         }
 
-        if (!followingId){
+        const validFollowingId = await userRepository.findById(followingId)
+
+        if (!validFollowingId){
             return res.status(400).json({
                 ok: false,
-                message: "No following ID added"
-            })
-        } else{
-            const validUserId = await userRepository.findById(followingId)
-
-            if (!validUserId){
-                return res.status(400).json({
-                    ok: false,
-                    message: "User not found"
-                });
-            }
+                message: "User not found"
+            });
         }
-
+    
         if (followerId === followingId){
             return res.status(400).json({
                 ok: false,
@@ -598,43 +544,28 @@ app.post('/follow', async (req, res) => {
 })
 
 // 15 - Unfollow a user
-app.delete('/unfollow', async (req, res) => {
+app.delete('/unfollow', authMiddleware, async (req, res) => {
     try {
         const { followerId, followingId } = req.body;
         const followData = { followerId, followingId }
+        const validFollowerId = await userRepository.findById(followerId)
 
-        if (!followerId){
+        if (!validFollowerId){
             return res.status(400).json({
                 ok: false,
-                message: "No follower ID added"
-            })
-        } else{
-            const validUserId = await userRepository.findById(followerId)
-
-            if (!validUserId){
-                return res.status(400).json({
-                    ok: false,
-                    message: "User not found"
-                });
-            }
+                message: "User not found"
+            });
         }
 
-        if (!followingId){
+        const validFollowingId = await userRepository.findById(followingId)
+
+        if (!validFollowingId){
             return res.status(400).json({
                 ok: false,
-                message: "No following ID added"
-            })
-        } else{
-            const validUserId = await userRepository.findById(followingId)
-
-            if (!validUserId){
-                return res.status(400).json({
-                    ok: false,
-                    message: "User not found"
-                });
-            }
+                message: "User not found"
+            });
         }
-
+    
         if (followerId === followingId){
             return res.status(400).json({
                 ok: false,
@@ -673,11 +604,14 @@ app.delete('/unfollow', async (req, res) => {
     2) Create a separate folder in Postman just for Likes. OK
     3) Validate exintingLike so the same user can't like the same tweet twice within the method to show a response in Postman. OK
     4) Create a method for Unlike. OK
-    5) Create methods for Follow.
-    6) Create authentication for routes (users must be logged in).
-    7) Standardize checks between functions in repositories and between methods in the index.
-    8) Translate current data in Prisma into English.
-    9) Encrypt user passwords retroactive to encryption.
+    5) Create methods for Follow. OK
+    6) Create authentication for routes (users must be logged in) using Middlewares.
+    7) Enhance handleError to display the message in the console and in the method responses.
+    8) Create feed.
+    9) Standardize checks between functions in repositories and between methods in the index.
+    10) Translate current data in Prisma into English.
+    11) Encrypt user passwords retroactive to encryption.
+    12) Add the following and followers list to get all users.
 */
 
 const PORT = process.env.PORT;
