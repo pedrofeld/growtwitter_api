@@ -149,4 +149,76 @@ export class TweetRepository {
             return handleError(error);
         }
     }
+
+    public async findFeed(userId: string, maxDepth: number = 50) {
+        try {
+            const following = await prisma.follow.findMany({
+                where: { followerId: userId },
+                select: { followingId: true }
+            });
+
+            const followingIds = following.map(follow => follow.followingId);
+            
+            const userIds = [userId, ...followingIds];
+
+            const includeRepliesRecursive = (currentDepth: number): any => {
+                const baseInclude = {
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                            profileImage: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            likes: true,
+                            replies: true
+                        }
+                    },
+                    likes: {
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    username: true
+                                }
+                            }
+                        }
+                    }
+                };
+
+                if (currentDepth >= maxDepth) {
+                    return baseInclude;
+                }
+
+                return {
+                    ...baseInclude,
+                    replies: {
+                        include: includeRepliesRecursive(currentDepth + 1), 
+                        orderBy: {
+                            createdAt: 'asc'
+                        }
+                    }
+                };
+            };
+
+            const tweets = await prisma.tweet.findMany({
+                where: {
+                    parentId: null, 
+                    userId: { in: userIds } // Filter by followed users and self
+                },
+                include: includeRepliesRecursive(0),
+                orderBy: {
+                    createdAt: 'desc'
+                }
+            });
+
+            return tweets;
+        } catch (error: any) {
+            return handleError(error);
+        }
+    }
 }

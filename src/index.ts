@@ -389,6 +389,8 @@ app.delete('/tweet/:id', authMiddleware, validateIdParam,async (req, res) => {
     }
 })
 
+// LIKES
+
 // 11 - Like a tweet
 app.post('/like/:userId/:tweetId', authMiddleware, validateLike, async (req, res) => {
     try {
@@ -470,6 +472,8 @@ app.delete('/like/:id', authMiddleware, validateIdParam, async (req, res) => {
         });
     }
 })
+
+// FOLLOWS
 
 // 13 - Get all follows
 app.get('/follows', authMiddleware, async (req, res) => {
@@ -597,6 +601,8 @@ app.delete('/unfollow', authMiddleware, async (req, res) => {
     }
 })
 
+// AUTHENTICATION
+
 // 16 - Authentication test
 app.get('/auth-test', authMiddleware, async (req, res) => {
     try {
@@ -616,22 +622,29 @@ app.get('/auth-test', authMiddleware, async (req, res) => {
     }
 });
 
-/*
-    TO DO:
+// FEED
 
-    1) Create a repository just for Likes. OK
-    2) Create a separate folder in Postman just for Likes. OK
-    3) Validate exintingLike so the same user can't like the same tweet twice within the method to show a response in Postman. OK
-    4) Create a method for Unlike. OK
-    5) Create methods for Follow. OK
-    6) Create authentication for routes (users must be logged in) using Middlewares.
-    7) Enhance handleError to display the message in the console and in the method responses.
-    8) Create feed.
-    9) Standardize checks between functions in repositories and between methods in the index.
-    10) Translate current data in Prisma into English.
-    11) Encrypt user passwords retroactive to encryption.
-    12) Add the following and followers list to get all users.
-*/
+// 17 - Get user feed
+app.get('/feed', authMiddleware, async (req, res) => {
+    try {
+        const authenticatedUser = (req as any).user;
+        const userId = authenticatedUser.id;
+
+        const feed = await tweetRepository.findFeed(userId);
+
+        res.status(200).send({
+            ok: true,
+            message: "User feed retrieved successfully",
+            data: feed
+        });
+    } catch (error: any) {
+        res.status(500).send({
+            ok: false,
+            message: "Error fetching feed",
+            error: error.message
+        });
+    }
+});
 
 const PORT = process.env.PORT;
 
