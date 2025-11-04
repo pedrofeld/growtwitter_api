@@ -15,7 +15,9 @@ import {
   validateIdParam,
   validateUserLogin,
   validateLike,
-  validateFollow
+  validateFollow,
+  validateOwnership,
+  validateFollowOwnership
 } from "./config/middlewares";
 
 dotenv.config();
@@ -32,8 +34,8 @@ const followRepository = new FollowRepository();
 
 // USERS
 
-// 1 - Get all users
-app.get('/users', authMiddleware, async (req, res) => {
+// 1 - Get all users (non-mandatory method)
+app.get('/users', async (req, res) => {
     try {
         const users = await userRepository.findAll();
         res.status(200).send({
@@ -163,8 +165,8 @@ app.post('/user', validateUserCreation, async (req, res) => {
     }
 });
 
-// 4 - Update an existing user
-app.put('/user/:id', authMiddleware, validateIdParam, async (req, res) => {
+// 4 - Update an existing user (non-mandatory method)
+app.put('/user/:id', authMiddleware, validateIdParam, validateOwnership('user'), async (req, res) => {
     try {
         const { id } = req.params;
         const userId = id as string;
@@ -192,8 +194,8 @@ app.put('/user/:id', authMiddleware, validateIdParam, async (req, res) => {
     }
 });
 
-// 5 - Delete a user
-app.delete('/user/:id', authMiddleware, validateIdParam, async (req, res) => {
+// 5 - Delete a user (non-mandatory method)
+app.delete('/user/:id', authMiddleware, validateIdParam, validateOwnership('user'), async (req, res) => {
     try {
         const { id } = req.params;
         const userId = id as string;
@@ -271,8 +273,8 @@ app.post('/login', validateUserLogin, async (req, res) => {
 
 // TWEETS
 
-// 7 - Get all tweets
-app.get('/tweets', authMiddleware, async (req, res) => {
+// 7 - Get all tweets (non-mandatory method)
+app.get('/tweets', async (req, res) => {
     try {
         const tweets = await tweetRepository.findAll()
         res.status(200).send({
@@ -290,7 +292,7 @@ app.get('/tweets', authMiddleware, async (req, res) => {
 })
 
 // 8 - Create a tweet
-app.post('/tweet', authMiddleware, validateTweetCreation, async (req, res) => {
+app.post('/tweet', authMiddleware, validateTweetCreation, validateOwnership('tweet'), async (req, res) => {
     try {
         const tweetData = req.body;
 
@@ -321,8 +323,8 @@ app.post('/tweet', authMiddleware, validateTweetCreation, async (req, res) => {
     }
 })
 
-// 9 - Update a tweet
-app.put('/tweet/:id', authMiddleware, validateIdParam, async (req, res) => {
+// 9 - Update a tweet (non-mandatory method)
+app.put('/tweet/:id', authMiddleware, validateIdParam, validateOwnership('tweet'), async (req, res) => {
     try {
         const { id } = req.params;
         const tweetId = id as string;
@@ -359,8 +361,8 @@ app.put('/tweet/:id', authMiddleware, validateIdParam, async (req, res) => {
     }
 })
 
-// 10 - Delete a tweet
-app.delete('/tweet/:id', authMiddleware, validateIdParam,async (req, res) => {
+// 10 - Delete a tweet (non-mandatory method)
+app.delete('/tweet/:id', authMiddleware, validateIdParam, validateOwnership('tweet'), async (req, res) => {
     try {
         const { id } = req.params;
         const tweetId = id as string;
@@ -392,7 +394,7 @@ app.delete('/tweet/:id', authMiddleware, validateIdParam,async (req, res) => {
 // LIKES
 
 // 11 - Like a tweet
-app.post('/like/:userId/:tweetId', authMiddleware, validateLike, async (req, res) => {
+app.post('/like/:userId/:tweetId', authMiddleware, validateLike, validateOwnership('like'), async (req, res) => {
     try {
         const { userId, tweetId } = req.params;
         const user = userId as string;
@@ -443,7 +445,7 @@ app.post('/like/:userId/:tweetId', authMiddleware, validateLike, async (req, res
 })
 
 // 12 - Unlike a tweet
-app.delete('/like/:id', authMiddleware, validateIdParam, async (req, res) => {
+app.delete('/like/:id', authMiddleware, validateIdParam, validateOwnership('like'), async (req, res) => {
     try {
         const { id } = req.params;
         const likeId = id as string;
@@ -475,8 +477,8 @@ app.delete('/like/:id', authMiddleware, validateIdParam, async (req, res) => {
 
 // FOLLOWS
 
-// 13 - Get all follows
-app.get('/follows', authMiddleware, async (req, res) => {
+// 13 - Get all follows (non-mandatory method)
+app.get('/follows', async (req, res) => {
     try {
         const follows = await followRepository.findAll()
         res.status(200).send({
@@ -494,7 +496,7 @@ app.get('/follows', authMiddleware, async (req, res) => {
 })
 
 // 14 - Follow a user
-app.post('/follow', authMiddleware, validateFollow, async (req, res) => {
+app.post('/follow', authMiddleware, validateFollow, validateFollowOwnership, async (req, res) => {
     try {
         const { followerId, followingId } = req.body;
         const followData = { followerId, followingId }
@@ -548,7 +550,7 @@ app.post('/follow', authMiddleware, validateFollow, async (req, res) => {
 })
 
 // 15 - Unfollow a user
-app.delete('/unfollow', authMiddleware, async (req, res) => {
+app.delete('/unfollow', authMiddleware, validateFollowOwnership, async (req, res) => {
     try {
         const { followerId, followingId } = req.body;
         const followData = { followerId, followingId }
@@ -603,7 +605,7 @@ app.delete('/unfollow', authMiddleware, async (req, res) => {
 
 // AUTHENTICATION
 
-// 16 - Authentication test
+// 16 - Authentication test (non-mandatory method)
 app.get('/auth-test', authMiddleware, async (req, res) => {
     try {
         const user = (req as any).user;

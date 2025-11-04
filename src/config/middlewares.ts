@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { UserRepository } from '../database/user.repository';
 import { TweetRepository } from '../database/tweet.repository';
 import { handleError } from './error.handler';
+import { prisma } from './prisma.config';
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -194,3 +195,101 @@ export const validateFollow = (req: Request, res: Response, next: NextFunction) 
     return handleError(error);
   }
 }
+
+export const validateOwnership = (resourceType: 'user' | 'tweet' | 'like') => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authenticatedUser = (req as any).user;
+      let resourceOwnerId: string;
+
+      switch (resourceType) {
+        case 'user':
+          if (!req.params.id || req.params.id.trim().length === 0 || req.params.id === 'undefined' || req.params.id === 'null') {
+            return res.status(400).json({
+              ok: false,
+              message: 'User ID is required'
+            });
+          }
+          resourceOwnerId = req.params.id;
+          break;
+        
+        case 'tweet':
+          if (req.params.id) {
+            // For updating/deleting existing tweet
+            const tweet = await prisma.tweet.findUnique({
+              where: { id: req.params.id },
+              select: { userId: true }
+            });
+            if (!tweet) {
+              return res.status(404).json({
+                ok: false,
+                message: 'Tweet not found'
+              });
+            }
+            resourceOwnerId = tweet.userId;
+          } else {
+            // For creating new tweet
+            resourceOwnerId = req.body.userId;
+          }
+          break;
+        
+        case 'like':
+          if (req.params.id) {
+            // For deleting like by like ID
+            const like = await prisma.like.findUnique({
+              where: { id: req.params.id },
+              select: { userId: true }
+            });
+            if (!like) {
+              return res.status(404).json({
+                ok: false,
+                message: 'Like not found'
+              });
+            }
+            resourceOwnerId = like.userId;
+          } else {
+            // For creating like
+            resourceOwnerId = req.params.userId || req.body.userId;
+          }
+          break;
+        
+        default:
+          return res.status(400).json({
+            ok: false,
+            message: 'Invalid resource type'
+          });
+      }
+
+      // Verify if the authenticated user is the owner of the resource
+      if (authenticatedUser.id !== resourceOwnerId) {
+        return res.status(403).json({
+          ok: false,
+          message: 'You are not authorized to perform this action'
+        });
+      }
+
+      next();
+    } catch (error: any) {
+      return handleError(error);
+    }
+  };
+};
+
+export const validateFollowOwnership = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authenticatedUser = (req as any).user;
+    const { followerId } = req.body;
+
+    // Verify if the authenticated user is the one trying to follow
+    if (authenticatedUser.id !== followerId) {
+      return res.status(403).json({
+        ok: false,
+        message: 'You can only perform follow actions for your own account'
+      });
+    }
+
+    next();
+  } catch (error: any) {
+    return handleError(error);
+  }
+};
