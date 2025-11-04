@@ -246,7 +246,7 @@ app.post('/login', validateUserLogin, async (req, res) => {
             });
         }
 
-        const token = `token-${user.id}-${Date.now()}`;
+        const token = `token-${user.id}`;
 
         res.status(200).send({
             ok: true,
@@ -596,6 +596,25 @@ app.delete('/unfollow', authMiddleware, async (req, res) => {
         });
     }
 })
+
+// 16 - Authentication test
+app.get('/auth-test', authMiddleware, async (req, res) => {
+    try {
+        const user = (req as any).user;
+
+        res.status(200).json({
+            ok: true,
+            message: "Authenticated user:",
+            data: user
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            ok: false,
+            message: "Error fetching authenticated user",
+            error: error.message
+        });
+    }
+});
 
 /*
     TO DO:

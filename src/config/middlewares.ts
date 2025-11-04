@@ -10,7 +10,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     if (!token) {
       return res.status(401).json({
         ok: false,
-        message: 'Authentication token not provided'
+        message: 'Authentication token is required'
       });
     }
 
@@ -19,21 +19,19 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     if (!tokenValue.startsWith('token-')) {
       return res.status(401).json({
         ok: false,
+        message: 'Invalid token format'
+      });
+    }
+
+    const userId = tokenValue.replace('token-', '');
+    
+    if (!userId) {
+      return res.status(401).json({
+        ok: false,
         message: 'Invalid token'
       });
     }
 
-    const tokenParts = tokenValue.split('-');
-    
-    if (tokenParts.length < 3 || !tokenParts[1]) {
-      return res.status(401).json({
-        ok: false,
-        message: 'Malformed token'
-      });
-    }
-
-    const userId = tokenParts[1];
-    
     const userRepository = new UserRepository();
     const user = await userRepository.findById(userId);
 
@@ -51,13 +49,10 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       email: user.email
     };
 
+    console.log(`Authenticated user: ${user.name} (${user.id})`);
     next();
   } catch (error: any) {
-    return res.status(401).json({
-      ok: false,
-      message: 'Authentication failed',
-      error: error.message
-    });
+    return handleError(error);
   }
 };
 
