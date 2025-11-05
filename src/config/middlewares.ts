@@ -142,29 +142,29 @@ export const validateUserLogin = (req: Request, res: Response, next: NextFunctio
 
 export const validateLike = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId, tweetId } = req.body;
-
-    if (!userId || !tweetId) {
-      return res.status(400).json({
-        ok: false,
-        message: 'User ID and Tweet ID are required'
-      });
+    if (!req.body) {
+      req.body = {};
     }
 
-    const tweetData = { userId, tweetId };
-    if (tweetData.userId === undefined) {
+    const userId = req.params.userId || req.body.userId;
+    const tweetId = req.params.tweetId || req.body.tweetId;
+
+    if (!userId || userId.trim().length === 0) {
       return res.status(400).json({
         ok: false,
         message: 'User ID is required'
       });
     }
 
-    if (tweetData.tweetId === undefined) {
+    if (!tweetId || tweetId.trim().length === 0) {
       return res.status(400).json({
         ok: false,
         message: 'Tweet ID is required'
       });
     }
+
+    req.body.userId = userId;
+    req.body.tweetId = tweetId;
 
     next();
   } catch (error: any) {
