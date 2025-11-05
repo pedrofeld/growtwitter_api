@@ -98,6 +98,21 @@ A complete RESTful API for a Twitter-like social network, developed as part of t
 - **Validation** - Middlewares for data and permission validation
 - **Recursion** - Implementation of hierarchical replies
 
+## 🌐 Project Links
+
+- **📂 Repository**: [GitHub](https://github.com/pedrofeld/growtwitter_api)
+- **🚀 Deploy**: [Render](https://growtwitter-api-4bfw.onrender.com)
+- **📚 Documentation**: [Postman](https://documenter.getpostman.com/view/34456709/2sB3Wqv1Z9)
+
 ## 👨‍💻 Author
 
-Developed by [Pedro Feld](https://www.linkedin.com/in/pedro-feld/ "Author's LinkedIn profile").
+**Developed by Pedro Feld**  
+
+💼 **Roles:**  
+• Full Stack Web Developer  
+• System Analyst and Developer  
+• Growdev Student  
+
+🔗 **Connect:** [LinkedIn](https://www.linkedin.com/in/pedro-feld/)  
+
+📅 **Project Date:** November 2025
