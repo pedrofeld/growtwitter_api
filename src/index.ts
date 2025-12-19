@@ -19,6 +19,7 @@ import {
   validateOwnership,
   validateFollowOwnership
 } from "./config/middlewares";
+import { JwtService } from "./services/jwt.service";
 
 dotenv.config();
 const app = express();
@@ -26,7 +27,7 @@ app.use(express.json());
 app.use(cors());
 
 /* 
-    It would be necessary to configure CORS to accept requests only from the front-end domain, because it is a browser restriction It does not affect Postman or other API testing tools.
+    It would be necessary to configure CORS to accept requests only from the front-end domain, because it is a browser restriction. It does not affect Postman or other API testing tools.
     Exemple:
     app.use(cors({
         origin: 'https://my-front-end.com'
@@ -256,7 +257,10 @@ app.post('/login', validateUserLogin, async (req, res) => {
             });
         }
 
-        const token = `token-${user.id}`;
+        const token = new JwtService().createToken({
+            id: user.id,
+            username: user.username
+        });
 
         res.status(200).send({
             ok: true,
