@@ -10,7 +10,9 @@ interface JwtUserPayload {
 export class JwtService {
     // header . payload . signature
     public createToken(data: JwtUserPayload){
-        const token = sign(data, process.env.SECRET_KEY!);
+        const token = sign(data, process.env.SECRET_KEY!, {
+            expiresIn: '1d'
+        });
         return token;
     };
 
