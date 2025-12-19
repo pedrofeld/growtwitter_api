@@ -3,6 +3,7 @@ import { UserRepository } from '../database/user.repository';
 import { TweetRepository } from '../database/tweet.repository';
 import { handleError } from './error.handler';
 import { prisma } from './prisma.config';
+import { JwtService } from '../services/jwt.service';
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -15,24 +16,18 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       });
     }
 
-    const tokenValue = token.replace('Bearer ', '');
-    
-    if (!tokenValue.startsWith('token-')) {
+    // Validate token
+    const payload = new JwtService().validateToken(token);
+
+    if (!payload) {
       return res.status(401).json({
         ok: false,
-        message: 'Invalid token format'
+        message: 'Invalid or expired token'
       });
     }
 
-    const userId = tokenValue.replace('token-', '');
-    
-    if (!userId) {
-      return res.status(401).json({
-        ok: false,
-        message: 'Invalid token'
-      });
-    }
-
+    // Extract user ID from payload
+    const userId = payload.id;
     const userRepository = new UserRepository();
     const user = await userRepository.findById(userId);
 
@@ -50,7 +45,6 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       email: user.email
     };
 
-    console.log(`Authenticated user: ${user.name} (${user.id})`);
     next();
   } catch (error: any) {
     return handleError(error);

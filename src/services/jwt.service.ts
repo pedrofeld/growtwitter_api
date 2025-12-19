@@ -1,4 +1,4 @@
-import {sign} from 'jsonwebtoken';
+import {Jwt, sign, verify, decode} from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -16,7 +16,13 @@ export class JwtService {
         return token;
     };
 
-    public validateToken(){
-        // ..
+    public validateToken(token: string): JwtUserPayload | null {
+        try {
+            const decoded = verify(token, process.env.SECRET_KEY!);
+            return decoded as JwtUserPayload;
+        } catch (error) {
+            console.log('Invalid token:', error);
+            return null;
+        }
     };
 };
