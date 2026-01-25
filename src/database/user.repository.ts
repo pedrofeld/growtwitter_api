@@ -19,6 +19,14 @@ export class UserRepository {
         try {
             const user = await prisma.user.findUnique({
                 where: { id },
+                select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                    tweets: {
+                        orderBy: { createdAt: "desc" }
+                    }
+                }
             });
             return user;
         } catch (error: any) {
@@ -86,4 +94,46 @@ export class UserRepository {
             return handleError(error);
         }
     }
+
+    public async getFollowers(userId: string) {
+        try {
+            const follows = await prisma.follow.findMany({
+                where: { followingId: userId },
+                include: {
+                    follower: {
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true
+                        }
+                    }
+                }
+            });
+            return follows.map(follow => follow.follower);
+        } catch (error: any) {
+            return handleError(error);
+        }
+    }
+
+    public async getFollowing(userId: string) {
+        try {
+            const follows = await prisma.follow.findMany({
+                where: { followerId: userId },
+                include: {
+                    following: {
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true
+                        }
+                    }
+                }
+            });
+            return follows.map(follow => follow.following);
+        } catch (error: any) {
+            return handleError(error);
+        }
+    }
 }
+
+// ENDPOINT: Terminar revisão do User, faltou o LOGIN
