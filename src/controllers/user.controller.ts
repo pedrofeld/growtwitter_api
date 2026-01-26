@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
 import { UserService } from "../services/user.service";
+import { AuthService } from "../services/auth.service";
 
 export class UserController {
     private service = new UserService();
+    private authService = new AuthService();
 
     // 1 - Get all users (non-mandatory method)
     async getAll(req: Request, res: Response) {
@@ -117,7 +119,7 @@ export class UserController {
     async login(req: Request, res: Response) {
         try {
             const { login, password } = req.body;
-            const data = await this.service.login(login, password);
+            const data = await this.authService.login(login, password);
             res.status(200).json({ 
                 ok: true, 
                 message: "Login successful",
