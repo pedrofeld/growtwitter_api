@@ -3,6 +3,8 @@ import { UserRepository } from "../database/user.repository";
 import { JwtService } from "./jwt.service";
 import { handleError } from "../config/error.handler";
 import { prisma } from "../config/prisma.config";
+import { UpdateUserDto } from "../dtos/update-user.dto";
+import { CreateUserDto } from "../dtos/create-user.dto";
 
 export class UserService {
   private repo = new UserRepository();
@@ -37,7 +39,7 @@ export class UserService {
   }
 
   // 3 - Create new user
-  async create(data: any) {
+  async create(data: CreateUserDto) {
     try {
       if (!data.name) {
         throw new Error("Name is required");
@@ -69,7 +71,7 @@ export class UserService {
   }
 
   // 4 - Update user
-  async update(id: string, data: any) {
+  async update(id: string, data: UpdateUserDto) {
     try {
       if (!id){
         throw new Error("ID is required");
