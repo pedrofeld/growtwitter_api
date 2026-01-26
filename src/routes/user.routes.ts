@@ -50,11 +50,4 @@ routes.delete(
     controller.delete.bind(controller)
 );
 
-// 6 - User login
-routes.post(
-    "/login",
-    validateUserLogin,
-    controller.login.bind(controller)
-);
-
 export default routes;

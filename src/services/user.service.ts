@@ -1,14 +1,11 @@
 import * as bcrypt from "bcrypt";
 import { UserRepository } from "../database/user.repository";
-import { JwtService } from "./jwt.service";
 import { handleError } from "../config/error.handler";
-import { prisma } from "../config/prisma.config";
 import { UpdateUserDto } from "../dtos/update-user.dto";
 import { CreateUserDto } from "../dtos/create-user.dto";
 
 export class UserService {
   private repo = new UserRepository();
-  private jwt = new JwtService();
 
   // 1 - Get all users (non-mandatory method)
   async getAll() {
@@ -105,38 +102,6 @@ export class UserService {
       }
       const deletedUser = await this.repo.delete(id);
       return deletedUser;
-    } catch (error: any) {
-      return handleError(error);
-    }
-  }
-
-  // 6 - User login
-  async login(login: string, password: string) {
-    try {
-      let user = await this.repo.findByEmail(login);
-      if (!user){
-        user = await this.repo.findByUsername(login);
-      } 
-      if (!user){
-        throw new Error("User not found");
-      } 
-      const valid = await bcrypt.compare(password, user.password);
-      if (!valid){
-        throw new Error("Invalid credentials");
-      }
-      const token = this.jwt.createToken({
-        id: user.id,
-        username: user.username,
-      });
-      return {
-        user: {
-          id: user.id,
-          name: user.name,
-          username: user.username,
-          email: user.email,
-        },
-        token,
-      };
     } catch (error: any) {
       return handleError(error);
     }

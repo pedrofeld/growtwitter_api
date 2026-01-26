@@ -135,5 +135,3 @@ export class UserRepository {
         }
     }
 }
-
-// ENDPOINT: Terminar revisão do User, faltou o LOGIN
