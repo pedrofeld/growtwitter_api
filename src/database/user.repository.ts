@@ -23,6 +23,7 @@ export class UserRepository {
                     id: true,
                     name: true,
                     username: true,
+                    email: true,
                     tweets: {
                         orderBy: { createdAt: "desc" }
                     }
