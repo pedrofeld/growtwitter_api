@@ -1,12 +1,12 @@
 {
   "name": "growtwitter_api",
   "version": "1.0.0",
-  "main": "dist/index.js",
+  "main": "src/server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "start": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "dev": "nodemon ./src/index.ts"
+    "dev": "nodemon ./src/server.ts"
   },
   "keywords": [],
   "author": "",
