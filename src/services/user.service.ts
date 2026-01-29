@@ -58,10 +58,7 @@ export class UserService {
       if (!newUser) {
         throw new Error("Error creating user");
       }
-      return this.repo.create({ 
-        ...data, 
-        password: hashedPassword 
-      });
+      return newUser;
     } catch (error) {
       return handleError(error);
     }
