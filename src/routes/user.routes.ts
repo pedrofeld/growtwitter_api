@@ -8,17 +8,17 @@ import {
 } from "../config/middlewares";
 import { UserController } from "../controllers/user.controller";
 
-const routes = Router();
+const userRoutes = Router();
 const controller = new UserController();
 
 // 1 - Get all users
-routes.get(
+userRoutes.get(
     "/users",
     controller.getAll.bind(controller)
 );
 
 // 2 - Get user by ID
-routes.get(
+userRoutes.get(
     "/user/:id",
     authMiddleware,
     validateIdParam,
@@ -26,14 +26,14 @@ routes.get(
 );
 
 // 3 - Create new user
-routes.post(
+userRoutes.post(
     "/user",
     validateUserCreation,
     controller.create.bind(controller)
 );
 
 // 4 - Update user
-routes.put(
+userRoutes.put(
     "/user/:id",
     authMiddleware,
     validateIdParam,
@@ -42,7 +42,7 @@ routes.put(
 );
 
 // 5 - Delete user
-routes.delete(
+userRoutes.delete(
     "/user/:id",
     authMiddleware,
     validateIdParam,
@@ -50,4 +50,4 @@ routes.delete(
     controller.delete.bind(controller)
 );
 
-export default routes;
+export default userRoutes;

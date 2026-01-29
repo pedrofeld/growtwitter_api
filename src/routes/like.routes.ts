@@ -7,11 +7,11 @@ import {
     validateOwnership,
 } from "../config/middlewares";
 
-const router = Router();
+const likeRoutes = Router();
 const likeController = new LikeController();
 
 // 1 - Like a tweet
-router.post(
+likeRoutes.post(
     "/like/:userId/:tweetId",
     authMiddleware,
     validateLike,
@@ -20,7 +20,7 @@ router.post(
 );
 
 // 2 - Unlike a tweet
-router.delete(
+likeRoutes.delete(
     "/like/:id",
     authMiddleware,
     validateIdParam,
@@ -28,4 +28,4 @@ router.delete(
     likeController.unlike
 );
 
-export default router;
+export default likeRoutes;

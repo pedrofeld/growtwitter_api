@@ -7,17 +7,17 @@ import {
     validateOwnership,
 } from "../config/middlewares";
 
-const router = Router();
+const tweetRoutes = Router();
 const tweetController = new TweetController();
 
 // 1 - Get all tweets (non-mandatory method)
-router.get(
+tweetRoutes.get(
     "/tweets",
     tweetController.getAll
 );
 
 // 2 - Create a tweet
-router.post(
+tweetRoutes.post(
     "/tweet",
     authMiddleware,
     validateTweetCreation,
@@ -26,7 +26,7 @@ router.post(
 );
 
 // 3 - Update a tweet (non-mandatory method)
-router.put(
+tweetRoutes.put(
     "/tweet/:id",
     authMiddleware,
     validateIdParam,
@@ -35,7 +35,7 @@ router.put(
 );
 
 // 4 - Delete a tweet (non-mandatory method)
-router.delete(
+tweetRoutes.delete(
     "/tweet/:id",
     authMiddleware,
     validateIdParam,
@@ -43,4 +43,4 @@ router.delete(
     tweetController.delete
 );
 
-export default router;
+export default tweetRoutes;

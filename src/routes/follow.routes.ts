@@ -6,14 +6,14 @@ import {
     validateFollowOwnership,
 } from "../config/middlewares";
 
-const router = Router();
+const followRoutes = Router();
 const followController = new FollowController();
 
 // 1 - Get all follows
-router.get("/follows", followController.getAll);
+followRoutes.get("/follows", followController.getAll);
 
 // 2 - Follow a user
-router.post(
+followRoutes.post(
     "/follow",
     authMiddleware,
     validateFollow,
@@ -22,11 +22,11 @@ router.post(
 );
 
 // 3 - Unfollow a user
-router.delete(
+followRoutes.delete(
     "/unfollow",
     authMiddleware,
     validateFollowOwnership,
     followController.unfollow
 );
 
-export default router;
+export default followRoutes;

@@ -2,14 +2,14 @@ import { Router } from "express";
 import { FeedController } from "../controllers/feed.controller";
 import { authMiddleware } from "../config/middlewares";
 
-const router = Router();
+const feedRoutes = Router();
 const feedController = new FeedController();
 
 // 1 - Get user feed
-router.get(
+feedRoutes.get(
     "/feed", 
     authMiddleware, 
     feedController.get
 );
 
-export default router;
+export default feedRoutes;

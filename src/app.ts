@@ -2,6 +2,11 @@ import express = require('express');
 import cors = require('cors');
 import * as dotenv from 'dotenv';
 import userRoutes from "./routes/user.routes";
+import tweetRoutes from './routes/tweet.routes';
+import likeRoutes from './routes/like.routes';
+import followRoutes from './routes/follow.routes';
+import feedRoutes from './routes/feed.routes';
+import authRoutes from './routes/auth.routes';
 
 const app = express();
 
@@ -16,6 +21,13 @@ app.use(cors());
 */
 dotenv.config();
 
-app.use(userRoutes);
+app.use(
+    userRoutes,
+    tweetRoutes,
+    likeRoutes,
+    followRoutes,
+    feedRoutes,
+    authRoutes
+);
 
 export default app;
