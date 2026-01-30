@@ -37,7 +37,7 @@ userRoutes.put(
     "/user/:id",
     authMiddleware,
     validateIdParam,
-    validateOwnership,
+    validateOwnership('user'),
     controller.update.bind(controller)
 );
 
@@ -46,7 +46,7 @@ userRoutes.delete(
     "/user/:id",
     authMiddleware,
     validateIdParam,
-    validateOwnership,
+    validateOwnership('user'),
     controller.delete.bind(controller)
 );
 
