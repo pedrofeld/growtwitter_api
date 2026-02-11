@@ -34,10 +34,6 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.3",
-    "prisma": "^6.17.1",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "react-router-dom": "^7.13.0",
-    "styled-components": "^6.3.8"
+    "prisma": "^6.17.1"
   }
 }
