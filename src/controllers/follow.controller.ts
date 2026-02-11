@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { FollowService } from "../services/follow.service";
-import { data } from "react-router-dom";
 
 const followService = new FollowService();
 
