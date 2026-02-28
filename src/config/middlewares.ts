@@ -7,7 +7,18 @@ import { JwtService } from '../services/jwt.service';
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.headers.authorization;
+    const authorizationHeader = req.headers.authorization;
+
+    if (!authorizationHeader) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Authentication token is required'
+      });
+    }
+
+    const token = authorizationHeader.toLowerCase().startsWith('bearer ')
+      ? authorizationHeader.slice(7).trim()
+      : authorizationHeader.trim();
 
     if (!token) {
       return res.status(401).json({
